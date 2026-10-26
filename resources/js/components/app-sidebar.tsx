@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ClipboardCheck, History, LayoutGrid } from 'lucide-react';
+import { ClipboardCheck, History, LayoutGrid, UsersRound } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -30,6 +30,11 @@ const mainNavItems: NavItem[] = [
         title: 'Activity history',
         href: '/activity-history',
         icon: History,
+    },
+    {
+        title: 'Team',
+        href: '/team',
+        icon: UsersRound,
     },
 ];
 

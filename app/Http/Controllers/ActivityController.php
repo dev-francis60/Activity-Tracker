@@ -84,7 +84,7 @@ class ActivityController extends Controller
     {
         $today = now()->toDateString();
         $validated = $request->validate([
-            'date' => ['nullable', 'date'],
+            'date' => ['nullable', 'date_format:Y-m-d'],
         ]);
         $activityDate = $validated['date'] ?? $today;
 
@@ -162,7 +162,7 @@ class ActivityController extends Controller
         Activity $activity
     ): RedirectResponse {
         $validated = $request->validate([
-            'activity_date' => ['required', 'date'],
+            'activity_date' => ['required', 'date_format:Y-m-d'],
             'status' => ['required', Rule::in(['Done', 'Pending'])],
             'remark' => ['required', 'string', 'max:2000'],
         ]);
@@ -190,9 +190,10 @@ class ActivityController extends Controller
     public function history(Request $request): Response
     {
         $validated = $request->validate([
-            'from' => ['nullable', 'date'],
-            'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
             'user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'search' => ['nullable', 'string', 'max:255'],
         ]);
 
         $updates = ActivityUpdate::query()
@@ -209,6 +210,18 @@ class ActivityController extends Controller
                 $validated['user_id'] ?? null,
                 fn ($query, $userId) => $query->where('user_id', $userId)
             )
+            ->when(filled($validated['search'] ?? null), function ($query) use ($validated) {
+                $search = trim($validated['search']);
+
+                $query->where(function ($query) use ($search) {
+                    $query->where('status', 'like', "%{$search}%")
+                        ->orWhere('remark', 'like', "%{$search}%")
+                        ->orWhere('user_name', 'like', "%{$search}%")
+                        ->orWhere('user_email', 'like', "%{$search}%")
+                        ->orWhereHas('dailyActivity.activity', fn ($activity) => $activity->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('user', fn ($user) => $user->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
+                });
+            })
             ->latest()
             ->paginate(20)
             ->withQueryString();

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class DailyActivity extends Model
 {
@@ -31,8 +32,8 @@ class DailyActivity extends Model
         return $this->hasMany(ActivityUpdate::class);
     }
 
-    public function latestUpdate(): HasMany
+    public function latestUpdate(): HasOne
     {
-        return $this->hasMany(ActivityUpdate::class)->latestOfMany();
+        return $this->hasOne(ActivityUpdate::class)->latestOfMany();
     }
 }
